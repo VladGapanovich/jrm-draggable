@@ -1,0 +1,26 @@
+enum JrmDraggableEventType {
+  DRAG_MOVE_EVENT = 'drag:move',
+  DRAG_OUT_CONTAINER_EVENT = 'drag:out:container',
+  DRAG_OUT_EVENT = 'drag:out',
+  DRAG_OVER_CONTAINER_EVENT = 'drag:over:container',
+  DRAG_OVER_EVENT = 'drag:over',
+  DRAG_PRESSURE_EVENT = 'drag:pressure',
+  DRAG_STOPPED_EVENT = 'drag:stopped',
+  DRAGGABLE_DESTROY_EVENT = 'draggable:destroy',
+  MIRROR_ATTACHED_EVENT = 'mirror:attached',
+  MIRROR_CREATED_EVENT = 'mirror:created',
+  MIRROR_CREATE_EVENT = 'mirror:create',
+  MIRROR_DESTROY_EVENT = 'mirror:destroy',
+  MIRROR_MOVED_EVENT = 'mirror:moved',
+  MIRROR_MOVE_EVENT = 'mirror:move',
+  DRAG_MOVE_SENSOR_EVENT = 'sensor:drag:move',
+  DRAG_PRESSURE_SENSOR_EVENT = 'sensor:drag:pressure',
+  DRAG_START_SENSOR_EVENT = 'sensor:drag:start',
+  DRAG_STOP_SENSOR_EVENT = 'sensor:drag:stop',
+  SORTABLE_SORTED_EVENT = 'sortable:sorted',
+  SORTABLE_SORT_EVENT = 'sortable:sort',
+  SORTABLE_START_EVENT = 'sortable:start',
+  SORTABLE_STOP_EVENT = 'sortable:stop',
+}
+
+export default JrmDraggableEventType;
