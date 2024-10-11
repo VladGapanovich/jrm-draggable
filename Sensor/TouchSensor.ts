@@ -1,14 +1,13 @@
-import { DraggableOptions } from '../Draggable';
+import { type DraggableOptions } from '../Draggable';
 import EventDispatcher, {
-  EventListener,
+  type EventListener,
+  type EventMap,
 } from '../EventDispatcher/EventDispatcher';
-import Sensor from '../Sensor/Sensor';
+import type Sensor from '../Sensor/Sensor';
 import JrmDraggableEventType from '../Shared/Event/JrmDraggableEventType';
 import closest from '../Shared/utils/closest';
 import euclideanDistance from '../Shared/utils/distance';
-import touchCoords, {
-  Touches,
-} from '../Shared/utils/touchCoords';
+import touchCoords, { type Touches } from '../Shared/utils/touchCoords';
 import DragStartSensorEvent from '../Sensor/Event/DragStartSensorEvent';
 import DragMoveSensorEvent from '../Sensor/Event/DragMoveSensorEvent';
 import DragStopSensorEvent from '../Sensor/Event/DragStopSensorEvent';
@@ -26,7 +25,7 @@ window.addEventListener(
     // Prevent scrolling
     event.preventDefault();
   },
-  { passive: false }
+  { passive: false },
 );
 
 export default class TouchSensor implements Sensor {
@@ -156,7 +155,7 @@ export default class TouchSensor implements Sensor {
       start.pageX,
       start.pageY,
       current.pageX,
-      current.pageY
+      current.pageY,
     );
 
     if (this.tapTimeout !== null) {
@@ -180,7 +179,7 @@ export default class TouchSensor implements Sensor {
     const { pageX, pageY } = touchCoords(event);
     const target = document.elementFromPoint(
       pageX - window.scrollX,
-      pageY - window.scrollY
+      pageY - window.scrollY,
     );
 
     const dragMoveEvent = new DragMoveSensorEvent({
@@ -218,7 +217,7 @@ export default class TouchSensor implements Sensor {
     const { pageX, pageY } = touchCoords(event);
     const target = document.elementFromPoint(
       pageX - window.scrollX,
-      pageY - window.scrollY
+      pageY - window.scrollY,
     );
 
     event.preventDefault();
@@ -238,11 +237,17 @@ export default class TouchSensor implements Sensor {
     this.startEvent = null;
   }
 
-  public on(type: JrmDraggableEventType, listener: EventListener) {
+  public on<T extends JrmDraggableEventType>(
+    type: T,
+    listener: EventListener<EventMap[T]>,
+  ) {
     this.eventDispatcher.on(type, listener);
   }
 
-  public off(type: JrmDraggableEventType, listener: EventListener) {
+  public off<T extends JrmDraggableEventType>(
+    type: T,
+    listener: EventListener<EventMap[T]>,
+  ) {
     this.eventDispatcher.off(type, listener);
   }
 }

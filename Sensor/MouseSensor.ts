@@ -1,8 +1,9 @@
-import { DraggableOptions } from '../Draggable';
+import { type DraggableOptions } from '../Draggable';
 import EventDispatcher, {
-  EventListener,
+  type EventListener,
+  type EventMap,
 } from '../EventDispatcher/EventDispatcher';
-import Sensor from '../Sensor/Sensor';
+import type Sensor from '../Sensor/Sensor';
 import JrmDraggableEventType from '../Shared/Event/JrmDraggableEventType';
 import euclideanDistance from '../Shared/utils/distance';
 import closest from '../Shared/utils/closest';
@@ -116,13 +117,13 @@ export default class MouseSensor implements Sensor {
       document.addEventListener(
         'contextmenu',
         this.onContextMenuWhileDragging,
-        true
+        true,
       );
       document.addEventListener('mousemove', this.onMouseMove.bind(this));
     }
   }
 
-  private onDistanceChange(coords: { pageX: number, pageY: number }) {
+  private onDistanceChange(coords: { pageX: number; pageY: number }) {
     if (this.startEvent === null) {
       return;
     }
@@ -140,7 +141,7 @@ export default class MouseSensor implements Sensor {
         this.startEvent.pageX,
         this.startEvent.pageY,
         pageX,
-        pageY
+        pageY,
       ) || 0;
 
     if (this.mouseDownTimeout !== null) {
@@ -206,7 +207,7 @@ export default class MouseSensor implements Sensor {
     document.removeEventListener(
       'contextmenu',
       this.onContextMenuWhileDragging,
-      true
+      true,
     );
     document.removeEventListener('mousemove', this.onMouseMove);
 
@@ -219,11 +220,17 @@ export default class MouseSensor implements Sensor {
     event.preventDefault();
   }
 
-  public on(type: JrmDraggableEventType, listener: EventListener) {
+  public on<T extends JrmDraggableEventType>(
+    type: T,
+    listener: EventListener<EventMap[T]>,
+  ) {
     this.eventDispatcher.on(type, listener);
   }
 
-  public off(type: JrmDraggableEventType, listener: EventListener) {
+  public off<T extends JrmDraggableEventType>(
+    type: T,
+    listener: EventListener<EventMap[T]>,
+  ) {
     this.eventDispatcher.off(type, listener);
   }
 }

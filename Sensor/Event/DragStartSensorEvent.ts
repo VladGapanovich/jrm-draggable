@@ -1,5 +1,5 @@
 import SensorEvent, {
-  SensorEventProps,
+  type SensorEventProps,
 } from '../../Sensor/Event/SensorEvent';
 import JrmDraggableEventType from '../../Shared/Event/JrmDraggableEventType';
 

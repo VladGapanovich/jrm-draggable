@@ -1,0 +1,9 @@
+/.github export-ignore
+/.gitignore export-ignore
+/.prettierrc.mjs export-ignore
+/docker-compose.yaml export-ignore
+/Dockerfile export-ignore
+/eslint.config.mjs export-ignore
+/Makefile export-ignore
+/start.sh export-ignore
+/tsconfig.json export-ignore

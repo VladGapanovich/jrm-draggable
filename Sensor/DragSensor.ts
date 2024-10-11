@@ -1,8 +1,9 @@
-import { DraggableOptions } from '../Draggable';
+import type { DraggableOptions } from '../Draggable';
 import EventDispatcher, {
-  EventListener,
+  type EventListener,
+  type EventMap,
 } from '../EventDispatcher/EventDispatcher';
-import Sensor from '../Sensor/Sensor';
+import type Sensor from '../Sensor/Sensor';
 import JrmDraggableEventType from '../Shared/Event/JrmDraggableEventType';
 import closest from '../Shared/utils/closest';
 import DragStartSensorEvent from '../Sensor/Event/DragStartSensorEvent';
@@ -38,7 +39,7 @@ export default class DragSensor implements Sensor {
     document.removeEventListener(
       'mousedown',
       this.onMouseDown.bind(this),
-      true
+      true,
     );
   }
 
@@ -120,8 +121,9 @@ export default class DragSensor implements Sensor {
     event.preventDefault();
   }
 
-  private nMouseDown(event: MouseEvent) {
+  private onMouseDown(event: MouseEvent) {
     // Firefox bug for inputs within draggables https://bugzilla.mozilla.org/show_bug.cgi?id=739071
+    // @ts-expect-error unexpected fields
     if (event.target && (event.target.form || event.target.contenteditable)) {
       return;
     }
@@ -149,7 +151,7 @@ export default class DragSensor implements Sensor {
 
     const nativeDraggableElement = closest(
       event.target,
-      (element) => element.draggable
+      (element) => element.draggable,
     );
 
     if (nativeDraggableElement) {
@@ -182,7 +184,7 @@ export default class DragSensor implements Sensor {
     document.removeEventListener(
       'dragstart',
       this.onDragStart.bind(this),
-      false
+      false,
     );
     document.removeEventListener('dragover', this.onDragOver.bind(this), false);
     document.removeEventListener('dragend', this.onDragEnd.bind(this), false);
@@ -199,11 +201,17 @@ export default class DragSensor implements Sensor {
     }
   }
 
-  public on(type: JrmDraggableEventType, listener: EventListener) {
+  public on<T extends JrmDraggableEventType>(
+    type: T,
+    listener: EventListener<EventMap[T]>,
+  ) {
     this.eventDispatcher.on(type, listener);
   }
 
-  public off(type: JrmDraggableEventType, listener: EventListener) {
+  public off<T extends JrmDraggableEventType>(
+    type: T,
+    listener: EventListener<EventMap[T]>,
+  ) {
     this.eventDispatcher.off(type, listener);
   }
 }

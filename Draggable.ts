@@ -1,4 +1,7 @@
-import EventDispatcher from './EventDispatcher/EventDispatcher';
+import EventDispatcher, {
+  type EventListener,
+  type EventMap,
+} from './EventDispatcher/EventDispatcher';
 import DragStopSensorEvent from './Sensor/Event/DragStopSensorEvent';
 import ElementMover from './Service/ElementMover';
 import JrmDraggableEvent from './Shared/Event/JrmDraggableEvent';
@@ -7,8 +10,8 @@ import SortableSortEvent from './Event/SortableSortEvent';
 import SortableStartEvent from './Event/SortableStartEvent';
 import SortableStopEvent from './Event/SortableStopEvent';
 import MirrorCreatedEvent from './Plugin/Mirror/MirrorEvent/MirrorCreatedEvent';
-import Plugin from './Plugin/Plugin';
-import Sensor from './Sensor/Sensor';
+import type Plugin from './Plugin/Plugin';
+import type Sensor from './Sensor/Sensor';
 import closest from './Shared/utils/closest';
 import DragMoveEvent from './Event/DragMoveEvent';
 import DragOverEvent from './Event/DragOverEvent';
@@ -103,7 +106,7 @@ export default class Draggable {
 
   public constructor(
     containers: HTMLElement[],
-    options: Partial<DraggableOptions> = {}
+    options: Partial<DraggableOptions> = {},
   ) {
     this.containers = containers;
     this.options = {
@@ -142,9 +145,9 @@ export default class Draggable {
 
     this.on(
       JrmDraggableEventType.MIRROR_CREATED_EVENT,
-      ({ mirror }: MirrorCreatedEvent) => {
-        this.mirror = mirror;
-      }
+      (event: MirrorCreatedEvent): void => {
+        this.mirror = event.mirror;
+      },
     );
     this.on(JrmDraggableEventType.MIRROR_DESTROY_EVENT, () => {
       this.mirror = null;
@@ -159,7 +162,7 @@ export default class Draggable {
 
   public getDraggableElementsForContainer(container): HTMLElement[] {
     const allDraggableElements = container.querySelectorAll(
-      this.options.draggable
+      this.options.draggable,
     );
 
     return [...allDraggableElements].filter((childElement) => {
@@ -199,22 +202,22 @@ export default class Draggable {
       }
 
       this.lastPlacedSource.classList.remove(
-        ...this.getClassNamesFor(DraggableClassName.SOURCE_PLACED)
+        ...this.getClassNamesFor(DraggableClassName.SOURCE_PLACED),
       );
       this.lastPlacedContainer.classList.remove(
-        ...this.getClassNamesFor(DraggableClassName.CONTAINER_PLACED)
+        ...this.getClassNamesFor(DraggableClassName.CONTAINER_PLACED),
       );
     }
 
     this.source = <HTMLElement>this.originalSource.cloneNode(true);
     this.originalSource.parentNode?.insertBefore(
       this.source,
-      this.originalSource
+      this.originalSource,
     );
     this.originalSource.style.display = 'none';
     this.startIndex = this.index(this.source);
     this.startContainerIndex = this.containers.indexOf(
-      <HTMLElement>this.sourceContainer
+      <HTMLElement>this.sourceContainer,
     );
 
     const sortableStartEvent = new SortableStartEvent({
@@ -241,27 +244,29 @@ export default class Draggable {
     }
 
     this.originalSource.classList.add(
-      ...this.getClassNamesFor(DraggableClassName.SOURCE_ORIGINAL)
+      ...this.getClassNamesFor(DraggableClassName.SOURCE_ORIGINAL),
     );
     this.source.classList.add(
-      ...this.getClassNamesFor(DraggableClassName.SOURCE_DRAGGING)
+      ...this.getClassNamesFor(DraggableClassName.SOURCE_DRAGGING),
     );
     this.sourceContainer.classList.add(
-      ...this.getClassNamesFor(DraggableClassName.CONTAINER_DRAGGING)
+      ...this.getClassNamesFor(DraggableClassName.CONTAINER_DRAGGING),
     );
     document.body.classList.add(
-      ...this.getClassNamesFor(DraggableClassName.BODY_DRAGGING)
+      ...this.getClassNamesFor(DraggableClassName.BODY_DRAGGING),
     );
     applyUserSelect(document.body, 'none');
 
     requestAnimationFrame(() => {
-      this.onDraggableMove(new DragMoveSensorEvent({
-        clientX: dragStartSensorEvent.clientX,
-        clientY: dragStartSensorEvent.clientY,
-        container: dragStartSensorEvent.container,
-        originalEvent: dragStartSensorEvent.originalEvent,
-        target: this.source,
-      }));
+      this.onDraggableMove(
+        new DragMoveSensorEvent({
+          clientX: dragStartSensorEvent.clientX,
+          clientY: dragStartSensorEvent.clientY,
+          container: dragStartSensorEvent.container,
+          originalEvent: dragStartSensorEvent.originalEvent,
+          target: this.source,
+        }),
+      );
     });
   }
 
@@ -290,7 +295,7 @@ export default class Draggable {
 
     const target =
       dragMoveSensorEvent.target?.closest<HTMLElement>(
-        this.options.draggable
+        this.options.draggable,
       ) || null;
     const overContainer = closest(dragMoveSensorEvent.target, this.containers);
 
@@ -306,7 +311,7 @@ export default class Draggable {
 
       if (this.currentOver) {
         this.currentOver.classList.remove(
-          ...this.getClassNamesFor(DraggableClassName.DRAGGABLE_OVER)
+          ...this.getClassNamesFor(DraggableClassName.DRAGGABLE_OVER),
         );
       }
       this.currentOver = null;
@@ -327,7 +332,7 @@ export default class Draggable {
       });
 
       this.currentOverContainer.classList.remove(
-        ...this.getClassNamesFor(DraggableClassName.CONTAINER_OVER)
+        ...this.getClassNamesFor(DraggableClassName.CONTAINER_OVER),
       );
       this.currentOverContainer = null;
 
@@ -336,7 +341,7 @@ export default class Draggable {
 
     if (overContainer && target && this.currentOver !== target) {
       overContainer.classList.add(
-        ...this.getClassNamesFor(DraggableClassName.CONTAINER_OVER)
+        ...this.getClassNamesFor(DraggableClassName.CONTAINER_OVER),
       );
 
       const dragOverContainerEvent = new DragOverContainerEvent({
@@ -360,7 +365,7 @@ export default class Draggable {
       this.currentOver !== target
     ) {
       target.classList.add(
-        ...this.getClassNamesFor(DraggableClassName.DRAGGABLE_OVER)
+        ...this.getClassNamesFor(DraggableClassName.DRAGGABLE_OVER),
       );
 
       const dragOverEvent = new DragOverEvent({
@@ -400,7 +405,7 @@ export default class Draggable {
       newIndex: this.index(this.source),
       oldContainerIndex: this.startContainerIndex,
       newContainerIndex: this.containers.indexOf(
-        <HTMLElement>this.source.parentNode
+        <HTMLElement>this.source.parentNode,
       ),
       oldContainer: this.sourceContainer,
       newContainer: <HTMLElement>this.source.parentNode,
@@ -413,34 +418,34 @@ export default class Draggable {
     this.originalSource.style.display = '';
 
     this.source.classList.remove(
-      ...this.getClassNamesFor(DraggableClassName.SOURCE_DRAGGING)
+      ...this.getClassNamesFor(DraggableClassName.SOURCE_DRAGGING),
     );
     this.originalSource.classList.remove(
-      ...this.getClassNamesFor(DraggableClassName.SOURCE_ORIGINAL)
+      ...this.getClassNamesFor(DraggableClassName.SOURCE_ORIGINAL),
     );
     this.originalSource.classList.add(
-      ...this.getClassNamesFor(DraggableClassName.SOURCE_PLACED)
+      ...this.getClassNamesFor(DraggableClassName.SOURCE_PLACED),
     );
     this.sourceContainer.classList.add(
-      ...this.getClassNamesFor(DraggableClassName.CONTAINER_PLACED)
+      ...this.getClassNamesFor(DraggableClassName.CONTAINER_PLACED),
     );
     this.sourceContainer.classList.remove(
-      ...this.getClassNamesFor(DraggableClassName.CONTAINER_DRAGGING)
+      ...this.getClassNamesFor(DraggableClassName.CONTAINER_DRAGGING),
     );
     document.body.classList.remove(
-      ...this.getClassNamesFor(DraggableClassName.BODY_DRAGGING)
+      ...this.getClassNamesFor(DraggableClassName.BODY_DRAGGING),
     );
     applyUserSelect(document.body, '');
 
     if (this.currentOver) {
       this.currentOver.classList.remove(
-        ...this.getClassNamesFor(DraggableClassName.DRAGGABLE_OVER)
+        ...this.getClassNamesFor(DraggableClassName.DRAGGABLE_OVER),
       );
     }
 
     if (this.currentOverContainer) {
       this.currentOverContainer.classList.remove(
-        ...this.getClassNamesFor(DraggableClassName.CONTAINER_OVER)
+        ...this.getClassNamesFor(DraggableClassName.CONTAINER_OVER),
       );
     }
 
@@ -450,13 +455,13 @@ export default class Draggable {
     this.placedTimeoutID = window.setTimeout(() => {
       if (this.lastPlacedSource) {
         this.lastPlacedSource.classList.remove(
-          ...this.getClassNamesFor(DraggableClassName.SOURCE_PLACED)
+          ...this.getClassNamesFor(DraggableClassName.SOURCE_PLACED),
         );
       }
 
       if (this.lastPlacedContainer) {
         this.lastPlacedContainer.classList.remove(
-          ...this.getClassNamesFor(DraggableClassName.CONTAINER_PLACED)
+          ...this.getClassNamesFor(DraggableClassName.CONTAINER_PLACED),
         );
       }
 
@@ -604,7 +609,7 @@ export default class Draggable {
 
   public refresh(
     containers: HTMLElement[],
-    options: Partial<DraggableOptions>
+    options: Partial<DraggableOptions>,
   ) {
     this.detachPlugins();
     this.detachSensors();
@@ -629,13 +634,19 @@ export default class Draggable {
     this.detachSensors();
   }
 
-  public on(type: JrmDraggableEventType, ...callbacks: any[]) {
+  public on<T extends JrmDraggableEventType>(
+    type: T,
+    ...callbacks: EventListener<EventMap[T]>[]
+  ) {
     this.eventDispatcher.on(type, ...callbacks);
 
     return this;
   }
 
-  public off(type: JrmDraggableEventType, callback: any) {
+  public off<T extends JrmDraggableEventType>(
+    type: T,
+    callback: EventListener<EventMap[T]>,
+  ) {
     this.eventDispatcher.off(type, callback);
 
     return this;
@@ -647,20 +658,20 @@ export default class Draggable {
 
   private index(element: HTMLElement) {
     return this.getSortableElementsForContainer(
-      <HTMLElement>element.parentNode
+      <HTMLElement>element.parentNode,
     ).indexOf(element);
   }
 
   private getSortableElementsForContainer(container: HTMLElement) {
     const allSortableElements = container.querySelectorAll<HTMLElement>(
-      this.options.draggable
+      this.options.draggable,
     );
 
     return Array.from(allSortableElements).filter(
       (childElement) =>
         childElement !== this.originalSource &&
         childElement !== this.mirror &&
-        childElement.parentNode === container
+        childElement.parentNode === container,
     );
   }
 
@@ -670,19 +681,19 @@ export default class Draggable {
 
       sensor.on(
         JrmDraggableEventType.DRAG_START_SENSOR_EVENT,
-        this.onDraggableStart
+        this.onDraggableStart,
       );
       sensor.on(
         JrmDraggableEventType.DRAG_MOVE_SENSOR_EVENT,
-        this.onDraggableMove
+        this.onDraggableMove,
       );
       sensor.on(
         JrmDraggableEventType.DRAG_STOP_SENSOR_EVENT,
-        this.onDraggableStop
+        this.onDraggableStop,
       );
       sensor.on(
         JrmDraggableEventType.DRAG_PRESSURE_SENSOR_EVENT,
-        this.onDraggablePressure
+        this.onDraggablePressure,
       );
 
       sensor.attach();

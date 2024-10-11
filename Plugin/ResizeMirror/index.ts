@@ -1,7 +1,8 @@
 import Draggable from '../../Draggable';
+import type DragOverContainerEvent from '../../Event/DragOverContainerEvent';
 import DragOverEvent from '../../Event/DragOverEvent';
 import MirrorCreatedEvent from '../../Plugin/Mirror/MirrorEvent/MirrorCreatedEvent';
-import Plugin from '../../Plugin/Plugin';
+import type Plugin from '../../Plugin/Plugin';
 import requestNextAnimationFrame from '../../Shared/utils/requestNextAnimationFrame';
 import JrmDraggableEventType from '../../Shared/Event/JrmDraggableEventType';
 
@@ -22,12 +23,12 @@ export default class ResizeMirror implements Plugin {
     this.draggable
       .on(
         JrmDraggableEventType.MIRROR_CREATED_EVENT,
-        this.onMirrorCreated.bind(this)
+        this.onMirrorCreated.bind(this),
       )
       .on(JrmDraggableEventType.DRAG_OVER_EVENT, this.onDragOver.bind(this))
       .on(
         JrmDraggableEventType.DRAG_OVER_CONTAINER_EVENT,
-        this.onDragOver.bind(this)
+        this.onDragOverContainer.bind(this),
       );
   }
 
@@ -35,16 +36,16 @@ export default class ResizeMirror implements Plugin {
     this.draggable
       .off(
         JrmDraggableEventType.MIRROR_CREATED_EVENT,
-        this.onMirrorCreated.bind(this)
+        this.onMirrorCreated.bind(this),
       )
       .off(
         JrmDraggableEventType.MIRROR_DESTROY_EVENT,
-        this.onMirrorDestroy.bind(this)
+        this.onMirrorDestroy.bind(this),
       )
       .off(JrmDraggableEventType.DRAG_OVER_EVENT, this.onDragOver.bind(this))
       .off(
         JrmDraggableEventType.DRAG_OVER_CONTAINER_EVENT,
-        this.onDragOver.bind(this)
+        this.onDragOverContainer.bind(this),
       );
   }
 
@@ -60,19 +61,23 @@ export default class ResizeMirror implements Plugin {
     this.resize(dragEvent);
   }
 
-  private resize({ overContainer, over }: DragOverEvent) {
+  private onDragOverContainer(dragEvent: DragOverContainerEvent) {
+    this.resize(dragEvent);
+  }
+
+  private resize(event: DragOverEvent | DragOverContainerEvent) {
     requestAnimationFrame(() => {
       if (this.mirror === null || !this.mirror.parentNode) {
         return;
       }
 
-      if (this.mirror.parentNode !== overContainer) {
-        overContainer.appendChild(this.mirror);
+      if (this.mirror.parentNode !== event.overContainer) {
+        event.overContainer.appendChild(this.mirror);
       }
 
       const overElement =
-        over ||
-        this.draggable.getDraggableElementsForContainer(overContainer)[0];
+        (event instanceof DragOverEvent && event.over) ||
+        this.draggable.getDraggableElementsForContainer(event.overContainer)[0];
 
       if (!overElement) {
         return;
