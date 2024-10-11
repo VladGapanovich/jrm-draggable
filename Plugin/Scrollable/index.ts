@@ -1,5 +1,5 @@
 import SortableStartEvent from '../../Event/SortableStartEvent';
-import Plugin from '../../Plugin/Plugin';
+import type Plugin from '../../Plugin/Plugin';
 import closest from '../../Shared/utils/closest';
 import Draggable from '../../Draggable';
 import DragMoveEvent from '../../Event/DragMoveEvent';
@@ -32,7 +32,7 @@ export default class Scrollable implements Plugin {
 
   public constructor(
     draggable: Draggable,
-    options: Partial<ScrollableOptions>
+    options: Partial<ScrollableOptions>,
   ) {
     this.draggable = draggable;
     this.options = {
@@ -89,7 +89,9 @@ export default class Scrollable implements Plugin {
   private onDragMove(dragEvent: DragMoveEvent) {
     this.findScrollableElementFrame = requestAnimationFrame(() => {
       if (dragEvent.dragMoveSensorEvent.target !== null) {
-        this.scrollableElement = this.getScrollableElement(dragEvent.dragMoveSensorEvent.target);
+        this.scrollableElement = this.getScrollableElement(
+          dragEvent.dragMoveSensorEvent.target,
+        );
       }
     });
 

@@ -1,0 +1,6 @@
+services:
+  jrm-draggable:
+    build:
+      context: .
+    volumes:
+      - .:/usr/src/app

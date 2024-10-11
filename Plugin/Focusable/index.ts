@@ -1,5 +1,5 @@
 import Draggable from '../../Draggable';
-import Plugin from '../../Plugin/Plugin';
+import type Plugin from '../../Plugin/Plugin';
 
 export default class Focusable implements Plugin {
   private readonly draggable: Draggable;
@@ -37,7 +37,8 @@ export default class Focusable implements Plugin {
   }
 
   private stripElement(element: HTMLElement) {
-    const tabIndexElementPosition = this.elementsWithMissingTabIndex.indexOf(element);
+    const tabIndexElementPosition =
+      this.elementsWithMissingTabIndex.indexOf(element);
 
     if (tabIndexElementPosition !== -1) {
       element.tabIndex = -1;
@@ -53,7 +54,7 @@ export default class Focusable implements Plugin {
           ...current,
           ...this.draggable.getDraggableElementsForContainer(container),
         ],
-        []
+        [],
       ),
     ];
   }

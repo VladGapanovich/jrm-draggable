@@ -1,0 +1,26 @@
+name: Pull Request Title
+on:
+    pull_request:
+        types:
+            - opened
+            - edited
+            - synchronize
+            - reopened
+
+jobs:
+    pr-title:
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: morrisoncole/pr-lint-action@51f3cfabaf5d46f94e54524214e45685f0401b2a # v1.7.1
+                with:
+                    repo-token: ${{ secrets.GITHUB_TOKEN }}
+                    title-regex: "
+            ^(?:Release (?:(JRM)-\\d+ ?){1,})$|\
+            ^(?:\\[(JRM)\\-\\d+\\] [A-Z].*)$|\
+            ^(?:Bump [a-z\\-\\/]+ from [\\.\\d]+ to [\\.\\d]+)$
+            "
+                    on-failed-regex-fail-action: true
+                    on-failed-regex-create-review: false
+                    on-failed-regex-request-changes: false
+                    on-failed-regex-comment:
+                        "Your PR title does not match the required format. Please make sure it uses the following format: \"[JRM-123] This is a title\" or \"Release JRM-123 JRM-456\"."

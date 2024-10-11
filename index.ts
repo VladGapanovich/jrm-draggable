@@ -1,6 +1,7 @@
-import { ComputedRef, nextTick, Ref, watch } from 'vue';
+import { type ComputedRef, nextTick, type Ref, watch } from 'vue';
 import Draggable, {
-  DraggableOptions, SensorConstructor,
+  type DraggableOptions,
+  type SensorConstructor,
 } from './Draggable';
 import Focusable from './Plugin/Focusable';
 import Mirror from './Plugin/Mirror';
@@ -10,10 +11,13 @@ import MouseSensor from './Sensor/MouseSensor';
 import TouchSensor from './Sensor/TouchSensor';
 
 export const useDraggable = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   values: Ref<any[]> | ComputedRef<any[]>,
   containersSelector: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   options: Ref<any>,
   sensors: SensorConstructor[] = [MouseSensor, TouchSensor],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pluginOptions: any[] = [
     { class: Focusable },
     {
@@ -24,18 +28,15 @@ export const useDraggable = (
     },
     { class: Scrollable },
     { class: SortAnimation },
-  ]
+  ],
 ) => {
   const containers: HTMLElement[] = Array.from(
-    document.querySelectorAll<HTMLElement>(containersSelector)
+    document.querySelectorAll<HTMLElement>(containersSelector),
   );
-  const sortable = new Draggable(
-    containers,
-    {
-      ...options.value,
-      sensors,
-    }
-  );
+  const sortable = new Draggable(containers, {
+    ...options.value,
+    sensors,
+  });
 
   for (const { class: Plugin, options } of pluginOptions) {
     sortable.addPlugin(new Plugin(sortable, options));
@@ -47,17 +48,14 @@ export const useDraggable = (
       await nextTick();
 
       const containers: HTMLElement[] = Array.from(
-        document.querySelectorAll<HTMLElement>(containersSelector)
+        document.querySelectorAll<HTMLElement>(containersSelector),
       );
 
-      sortable.refresh(
-        containers,
-        {
-          ...options.value,
-          sensors,
-        }
-      );
-    }
+      sortable.refresh(containers, {
+        ...options.value,
+        sensors,
+      });
+    },
   );
 
   watch(
@@ -66,20 +64,17 @@ export const useDraggable = (
       await nextTick();
 
       const containers: HTMLElement[] = Array.from(
-        document.querySelectorAll<HTMLElement>(containersSelector)
+        document.querySelectorAll<HTMLElement>(containersSelector),
       );
 
-      sortable.refresh(
-        containers,
-        {
-          ...newOptions,
-          sensors,
-        }
-      );
+      sortable.refresh(containers, {
+        ...newOptions,
+        sensors,
+      });
     },
     {
       deep: true,
-    }
+    },
   );
 
   return {

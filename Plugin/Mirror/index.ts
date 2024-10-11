@@ -1,6 +1,4 @@
-import Draggable, {
-  DraggableClassName,
-} from '../../Draggable';
+import Draggable, { DraggableClassName } from '../../Draggable';
 import SortableStartEvent from '../../Event/SortableStartEvent';
 import SortableStopEvent from '../../Event/SortableStopEvent';
 import MirrorCreateEvent from '../../Plugin/Mirror/MirrorEvent/MirrorCreateEvent';
@@ -10,8 +8,10 @@ import MirrorMoveEvent from '../../Plugin/Mirror/MirrorEvent/MirrorMoveEvent';
 import MirrorDestroyEvent from '../../Plugin/Mirror/MirrorEvent/MirrorDestroyEvent';
 import MirrorMovedEvent from '../../Plugin/Mirror/MirrorEvent/MirrorMovedEvent';
 import DragMoveEvent from '../../Event/DragMoveEvent';
+import type DragMoveSensorEvent from '../../Sensor/Event/DragMoveSensorEvent';
+import type DragStartSensorEvent from '../../Sensor/Event/DragStartSensorEvent';
 import JrmDraggableEventType from '../../Shared/Event/JrmDraggableEventType';
-import Plugin from '../../Plugin/Plugin';
+import type Plugin from '../../Plugin/Plugin';
 
 export type MirrorOptions = {
   constrainDimensions: boolean;
@@ -21,7 +21,47 @@ export type MirrorOptions = {
   cursorOffsetY: number | null;
   thresholdX: number | null;
   thresholdY: number | null;
-  appendTo: any;
+};
+
+type DragStartInitialState = {
+  mirror: HTMLElement;
+  source: HTMLElement;
+  sensorEvent: DragStartSensorEvent;
+  mirrorClasses: string[];
+  options: MirrorOptions;
+  initialX: number | null;
+  initialY: number | null;
+  scrollOffset: ScrollOffset;
+  passedThreshX: boolean;
+  passedThreshY: boolean;
+  lastMovedX: number | null;
+  lastMovedY: number | null;
+  initial: boolean;
+};
+
+type DragMoveInitialState = {
+  mirror: HTMLElement;
+  sensorEvent: DragMoveSensorEvent;
+  mirrorOffset: {
+    top: number;
+    left: number;
+  };
+  options: MirrorOptions;
+  initialX: number | null;
+  initialY: number | null;
+  scrollOffset: ScrollOffset;
+  passedThreshX: boolean;
+  passedThreshY: boolean;
+  lastMovedX: number | null;
+  lastMovedY: number | null;
+  initial: boolean;
+};
+
+type StateWithMirrorOffset = DragStartInitialState & {
+  mirrorOffset: {
+    top: number;
+    left: number;
+  };
 };
 
 export const defaultOptions: MirrorOptions = {
@@ -32,7 +72,6 @@ export const defaultOptions: MirrorOptions = {
   cursorOffsetY: null,
   thresholdX: null,
   thresholdY: null,
-  appendTo: null,
 };
 
 type ScrollOffset = {
@@ -257,38 +296,59 @@ export default class Mirror implements Plugin {
     };
   }
 
-  private onMirrorCreated({ mirror, source, dragStartEvent }: MirrorCreatedEvent) {
+  private onMirrorCreated({
+    mirror,
+    source,
+    dragStartEvent,
+  }: MirrorCreatedEvent) {
     const mirrorClasses = this.draggable.getClassNamesFor(
-      DraggableClassName.MIRROR
+      DraggableClassName.MIRROR,
     );
-    const setState = ({ mirrorOffset, initialX, initialY, ...args }) => {
+    const setState = ({
+      mirrorOffset,
+      initialX,
+      initialY,
+      lastMovedX,
+      lastMovedY,
+      ...args
+    }: StateWithMirrorOffset): StateWithMirrorOffset => {
       this.mirrorOffset = mirrorOffset;
       this.initialX = initialX;
       this.initialY = initialY;
-      this.lastMovedX = initialX;
-      this.lastMovedY = initialY;
+      this.lastMovedX = lastMovedX;
+      this.lastMovedY = lastMovedY;
 
-      return { mirrorOffset, initialX, initialY, ...args };
+      return {
+        mirrorOffset,
+        initialX,
+        initialY,
+        lastMovedX,
+        lastMovedY,
+        ...args,
+      };
     };
 
     mirror.style.display = 'none';
 
-    const initialState = {
+    const initialState: DragStartInitialState = {
       mirror,
       source,
       sensorEvent: dragStartEvent.sensorEvent,
       mirrorClasses,
-      scrollOffset: this.scrollOffset,
       options: this.options,
+      initialX: this.initialX,
+      initialY: this.initialY,
+      scrollOffset: this.scrollOffset,
       passedThreshX: true,
       passedThreshY: true,
+      lastMovedX: this.initialX,
+      lastMovedY: this.initialY,
       initial: true,
     };
 
     return (
       Promise.resolve(initialState)
         // Fix reflow here
-        .then(computeMirrorDimensions)
         .then(calculateMirrorOffset)
         .then(resetMirror)
         .then(addMirrorClasses)
@@ -303,15 +363,19 @@ export default class Mirror implements Plugin {
       return null;
     }
 
-    const setState = ({ lastMovedX, lastMovedY, ...args }) => {
+    const setState = ({
+      lastMovedX,
+      lastMovedY,
+      ...args
+    }: DragMoveInitialState): DragMoveInitialState => {
       this.lastMovedX = lastMovedX;
       this.lastMovedY = lastMovedY;
 
       return { lastMovedX, lastMovedY, ...args };
     };
-    const triggerMoved = (args) => {
+    const triggerMoved = (args: DragMoveInitialState): DragMoveInitialState => {
       if (this.mirror === null) {
-        return;
+        return args;
       }
 
       const mirrorMovedEvent = new MirrorMovedEvent({
@@ -329,7 +393,8 @@ export default class Mirror implements Plugin {
       return args;
     };
 
-    const initialState = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const initialState: any = {
       mirror: mirrorEvent.mirror,
       sensorEvent: mirrorEvent.dragMoveEvent.dragMoveSensorEvent,
       mirrorOffset: this.mirrorOffset,
@@ -351,22 +416,15 @@ export default class Mirror implements Plugin {
   }
 }
 
-function computeMirrorDimensions({ source, ...args }): Promise<any> {
-  return withPromise((resolve) => {
-    resolve({
-      source,
-      sourceRect: source.getBoundingClientRect(),
-      ...args,
-    });
-  });
-}
-
 function calculateMirrorOffset({
+  source,
   sensorEvent,
-  sourceRect,
   options,
   ...args
-}): Promise<any> {
+}: DragStartInitialState): Promise<StateWithMirrorOffset> {
+  const sourceRect = source.getBoundingClientRect();
+
+  // @ts-expect-error unknown promise
   return withPromise((resolve) => {
     const top: number =
       options.cursorOffsetY === null
@@ -379,7 +437,6 @@ function calculateMirrorOffset({
 
     resolve({
       sensorEvent,
-      sourceRect,
       mirrorOffset: { top, left },
       options,
       ...args,
@@ -387,14 +444,20 @@ function calculateMirrorOffset({
   });
 }
 
-function resetMirror({ mirror, source, options, ...args }): Promise<any> {
+function resetMirror({
+  mirror,
+  source,
+  options,
+  ...args
+}: StateWithMirrorOffset): StateWithMirrorOffset {
+  // @ts-expect-error unknown promise
   return withPromise((resolve) => {
-    mirror.style.display = null;
+    mirror.style.display = '';
     mirror.style.position = 'fixed';
     mirror.style.pointerEvents = 'none';
-    mirror.style.top = 0;
-    mirror.style.left = 0;
-    mirror.style.margin = 0;
+    mirror.style.top = '0';
+    mirror.style.left = '0';
+    mirror.style.margin = '0';
 
     if (options.constrainDimensions) {
       const computedSourceStyles = getComputedStyle(source);
@@ -407,7 +470,12 @@ function resetMirror({ mirror, source, options, ...args }): Promise<any> {
   });
 }
 
-function addMirrorClasses({ mirror, mirrorClasses, ...args }): Promise<any> {
+function addMirrorClasses({
+  mirror,
+  mirrorClasses,
+  ...args
+}: StateWithMirrorOffset): Promise<StateWithMirrorOffset> {
+  // @ts-expect-error unknown promise
   return withPromise((resolve) => {
     mirror.classList.add(...mirrorClasses);
 
@@ -415,9 +483,14 @@ function addMirrorClasses({ mirror, mirrorClasses, ...args }): Promise<any> {
   });
 }
 
-function removeMirrorID({ mirror, ...args }): Promise<any> {
+function removeMirrorID({
+  mirror,
+  ...args
+}: StateWithMirrorOffset): Promise<StateWithMirrorOffset> {
+  // @ts-expect-error unknown promise
   return withPromise((resolve) => {
     mirror.removeAttribute('id');
+    // @ts-expect-error can't remove id property
     delete mirror.id;
 
     resolve({ mirror, ...args });
@@ -438,7 +511,8 @@ function positionMirror({
   lastMovedY,
   initial,
   ...args
-}: any): Promise<any> {
+}: StateWithMirrorOffset): Promise<StateWithMirrorOffset> {
+  // @ts-expect-error unknown promise
   return withPromise(
     (resolve) => {
       const result = {
@@ -446,6 +520,10 @@ function positionMirror({
         sensorEvent,
         mirrorOffset,
         options,
+        initialY,
+        initialX,
+        lastMovedX,
+        lastMovedY,
         ...args,
       };
 
@@ -453,15 +531,15 @@ function positionMirror({
         const x = passedThreshX
           ? Math.round(
               (sensorEvent.clientX - mirrorOffset.left - scrollOffset.x) /
-                (options.thresholdX || 1)
+                (options.thresholdX || 1),
             ) * (options.thresholdX || 1)
-          : Math.round(lastMovedX);
+          : Math.round(lastMovedX || 0);
         const y = passedThreshY
           ? Math.round(
               (sensorEvent.clientY - mirrorOffset.top - scrollOffset.y) /
-                (options.thresholdY || 1)
+                (options.thresholdY || 1),
             ) * (options.thresholdY || 1)
-          : Math.round(lastMovedY);
+          : Math.round(lastMovedY || 0);
 
         if ((options.xAxis && options.yAxis) || initial) {
           mirror.style.transform = `translate3d(${x}px, ${y}px, 0)`;
@@ -482,7 +560,7 @@ function positionMirror({
 
       resolve(result);
     },
-    { raf: !initial }
+    { raf: !initial },
   );
 }
 

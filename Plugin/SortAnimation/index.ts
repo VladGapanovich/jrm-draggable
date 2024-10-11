@@ -1,6 +1,6 @@
 import Draggable from '../../Draggable';
 import JrmDraggableEventType from '../../Shared/Event/JrmDraggableEventType';
-import Plugin from '../../Plugin/Plugin';
+import type Plugin from '../../Plugin/Plugin';
 import SortableSortEvent from '../../Event/SortableSortEvent';
 import SortableSortedEvent from '../../Event/SortableSortedEvent';
 
@@ -28,7 +28,7 @@ export default class SortAnimation implements Plugin {
 
   public constructor(
     draggable: Draggable,
-    options: Partial<SortAnimationOptions>
+    options: Partial<SortAnimationOptions>,
   ) {
     this.draggable = draggable;
     this.options = {
@@ -45,35 +45,35 @@ export default class SortAnimation implements Plugin {
   public attach() {
     this.draggable.on(
       JrmDraggableEventType.SORTABLE_SORT_EVENT,
-      this.onSortableSort
+      this.onSortableSort,
     );
     this.draggable.on(
       JrmDraggableEventType.SORTABLE_SORTED_EVENT,
-      this.onSortableSorted
+      this.onSortableSorted,
     );
   }
 
   public detach() {
     this.draggable.off(
       JrmDraggableEventType.SORTABLE_SORT_EVENT,
-      this.onSortableSort
+      this.onSortableSort,
     );
     this.draggable.off(
       JrmDraggableEventType.SORTABLE_SORTED_EVENT,
-      this.onSortableSorted
+      this.onSortableSorted,
     );
   }
 
   private onSortableSort({ dragEvent }: SortableSortEvent) {
-    const { sourceContainer } = dragEvent;
+    const { overContainer } = dragEvent;
     const elements =
-      this.draggable.getDraggableElementsForContainer(sourceContainer);
+      this.draggable.getDraggableElementsForContainer(overContainer);
 
-    this.lastElements = elements.map((el): LastElement => {
+    this.lastElements = elements.map((element): LastElement => {
       return {
-        element: el,
-        offsetTop: el.offsetTop,
-        offsetLeft: el.offsetLeft,
+        element,
+        offsetTop: element.offsetTop,
+        offsetLeft: element.offsetLeft,
       };
     });
   }
@@ -88,7 +88,10 @@ export default class SortAnimation implements Plugin {
       return;
     }
 
-    const effectedElements: any[] = [];
+    const effectedElements: {
+      from: LastElement | undefined;
+      to: LastElement | undefined;
+    }[] = [];
     let start;
     let end;
     let num;
@@ -115,14 +118,16 @@ export default class SortAnimation implements Plugin {
     }
 
     this.lastAnimationFrame = requestAnimationFrame(() => {
-      effectedElements.forEach((element) => animate(element, this.options));
+      for (const element of effectedElements) {
+        animate(element, this.options);
+      }
     });
   }
 }
 
 function animate(
   { from, to }: { from: LastElement | undefined; to: LastElement | undefined },
-  { duration, easingFunction }: SortAnimationOptions
+  { duration, easingFunction }: SortAnimationOptions,
 ) {
   if (from === undefined || to === undefined) {
     return;
@@ -147,6 +152,6 @@ function resetElementOnTransitionEnd(event) {
   event.target.style.pointerEvents = '';
   event.target.removeEventListener(
     'transitionend',
-    resetElementOnTransitionEnd
+    resetElementOnTransitionEnd,
   );
 }

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:js-app",
+    "npm:unpublishSafe",
+    ":enableVulnerabilityAlerts",
+    ":semanticCommits",
+    ":prHourlyLimitNone",
+    ":prImmediately",
+    ":approveMajorUpdates"
+  ],
+  "schedule": [
+    "every 2 weeks on the first day of the week"
+  ],
+  "npm": {
+    "minimumReleaseAge": "3 days"
+  },
+  "automerge": true,
+  "automergeStrategy": "squash",
+  "automergeType": "pr",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": "before 11am"
+  },
+  "platformAutomerge": true,
+  "rangeStrategy": "in-range-only",
+  "rebaseWhen": "conflicted",
+  "branchPrefix": "ticket/JRM-16-renovate/",
+  "commitMessagePrefix": "[JRM-16]",
+  "recreateWhen": "never"
+}

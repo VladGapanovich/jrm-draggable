@@ -1,5 +1,5 @@
 export default function requestNextAnimationFrame(
-  callback: FrameRequestCallback
+  callback: FrameRequestCallback,
 ) {
   return requestAnimationFrame(() => {
     requestAnimationFrame(callback);
