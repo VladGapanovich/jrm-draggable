@@ -436,6 +436,7 @@ function calculateMirrorOffset({
         : options.cursorOffsetX;
 
     resolve({
+      source,
       sensorEvent,
       mirrorOffset: { top, left },
       options,
