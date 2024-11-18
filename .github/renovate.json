@@ -15,7 +15,7 @@
   "npm": {
     "minimumReleaseAge": "3 days"
   },
-  "automerge": true,
+  "automerge": false,
   "automergeStrategy": "squash",
   "automergeType": "pr",
   "lockFileMaintenance": {
