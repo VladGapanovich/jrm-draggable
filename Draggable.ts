@@ -36,7 +36,7 @@ export type DraggableOptions = {
   draggable: string;
   handle: string | null;
   delay: Delay;
-  classes: { [key: string]: string | string[] };
+  classes: Record<string, string | string[]>;
   distance: number;
   placedTimeout: number;
   sensors: SensorConstructor[];
@@ -602,7 +602,7 @@ export default class Draggable {
   }
 
   public getClassNamesFor(name: DraggableClassName): string[] {
-    const classNames = this.options.classes[name];
+    const classNames = this.options.classes[name] as string | string[];
 
     return typeof classNames === 'string' ? [classNames] : classNames;
   }
