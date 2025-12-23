@@ -339,7 +339,7 @@ export default class Draggable {
       this.trigger(dragOutContainerEvent);
     }
 
-    if (overContainer && target && this.currentOver !== target) {
+    if (overContainer && this.currentOverContainer === null) {
       overContainer.classList.add(
         ...this.getClassNamesFor(DraggableClassName.CONTAINER_OVER),
       );
